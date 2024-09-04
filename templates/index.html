@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Prediction</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        async function predictCrop() {
+            try {
+                const phValue = parseFloat(document.getElementById('ph').value);
+                if (phValue < 0 || phValue > 14) {
+                    throw new Error('pH value must be between 0 and 14.');
+                }
+
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        N: parseFloat(document.getElementById('N').value),
+                        P: parseFloat(document.getElementById('P').value),
+                        K: parseFloat(document.getElementById('K').value),
+                        temperature: parseFloat(document.getElementById('temperature').value),
+                        humidity: parseFloat(document.getElementById('humidity').value),
+                        ph: phValue,
+                        rainfall: parseFloat(document.getElementById('rainfall').value)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                console.log('Response Data:', data);
+
+                if (data && data.crop) {
+                    document.getElementById('result').innerText = 'Recommended Crop: ' + data.crop;
+                } else {
+                    document.getElementById('result').innerText = 'No crop prediction received';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('result').innerText = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen m-0 p-0">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+        <h1 class="text-2xl font-semibold text-gray-800 text-center mb-4">Crop Prediction</h1>
+        <label for="N" class="block mb-2 font-bold text-gray-700">Nitrogen(kg/ha):</label>
+        <input type="number" id="N" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="P" class="block mb-2 font-bold text-gray-700">Phosphorus(kg/ha):</label>
+        <input type="number" id="P" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="K" class="block mb-2 font-bold text-gray-700">Potassium(kg/ha):</label>
+        <input type="number" id="K" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="temperature" class="block mb-2 font-bold text-gray-700">Temperature(°C):</label>
+        <input type="number" id="temperature" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="humidity" class="block mb-2 font-bold text-gray-700">Humidity(%):</label>
+        <input type="number" id="humidity" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="ph" class="block mb-2 font-bold text-gray-700">pH:</label>
+        <input type="number" id="ph" step="any" min="0" max="14" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <label for="rainfall" class="block mb-2 font-bold text-gray-700">Rainfall(mm):</label>
+        <input type="number" id="rainfall" step="any" class="w-full p-2 mb-3 border border-gray-300 rounded-md"><br>
+        <button onclick="predictCrop()" class="w-full p-3 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600">Predict</button>
+        <p id="result" class="mt-4 text-lg text-center text-red-600"></p>
+    </div>
+</body>
+</html>
